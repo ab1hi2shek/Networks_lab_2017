@@ -22,7 +22,7 @@ struct sockaddr_in serv_addr,cli_addr;
 
 serv_addr.sin_family=AF_INET;
 serv_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
-serv_addr.sin_port=htons(6000);
+serv_addr.sin_port=htons(50105);
 
 char arr[100];
 char buf[100];
