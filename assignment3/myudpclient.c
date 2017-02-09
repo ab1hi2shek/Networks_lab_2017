@@ -1,3 +1,11 @@
+/*//////////////////////////////////////////
+
+Names: Somesh Khandelia & Subhranil Mondal
+Roll no.: 14/CS/105 & 13/CS/111
+Assignment No.3
+Group no. 24
+
+*////////////////////////////////////////////
 /*
  * udpclient.c - A simple UDP client
  * usage: udpclient <host> <port>
@@ -80,7 +88,7 @@ int main(int argc, char **argv) {
           if(n<0){
             printf("\nrecv from error\n");
           }
-          printf("The result is : ");
+          printf("\n\nThe result received from server is : ");
           for(i=0;i<100;i++){
             if(result[i]!='\0')
             printf("%c",result[i]);

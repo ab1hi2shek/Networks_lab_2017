@@ -1,3 +1,11 @@
+/*//////////////////////////////////////////
+
+Names: Somesh Khandelia & Subhranil Mondal
+Roll no.: 14/CS/105 & 13/CS/111
+Assignment No.3
+Group no. 24
+
+*////////////////////////////////////////////
 /*
  * udpserver.c - A simple UDP echo server
  * usage: udpserver <port>
@@ -284,7 +292,7 @@ int main(int argc, char **argv) {
 
 
           printf("\n\n%d is the result\n\n",result);
-          printf("\n\n%s is the result in string\n\n",servermsg);
+          //printf("\n\n%s is the result in string\n\n",servermsg);
 
 
           n = sendto(sockfd, servermsg, 100, 0,
