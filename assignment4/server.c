@@ -79,9 +79,6 @@ int main(void)
           }
           recv(connfd, buff, 100, 0);
           printf("\n\nThe received text in server(from TCP client) : %s\n", buff);
-          //char*servermsgtotcp="Server_talking_to_TCP_client";
-          //send(connfd,servermsgtotcp,strlen(servermsgtotcp)+1,0);
-
           close(connfd);
 
       }

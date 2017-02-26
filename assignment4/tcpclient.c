@@ -39,11 +39,6 @@ do{
   printf("\n\nThis is TCP client\n\nEnter text to be sent: ");
   gets(arr);
   send(sockfd,arr,strlen(arr)+1,0);
-  //for(i=0;i<20;i++)result[i]='\0';
-  //recv(sockfd,result,20,0);
-
-  //printf("\nThe result received from server is : %s\n\n",result);
-
   close(sockfd);
 
 }while(1);

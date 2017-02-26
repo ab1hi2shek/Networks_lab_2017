@@ -72,23 +72,6 @@ int main(int argc, char **argv) {
       gets(buf);
       serverlen = sizeof(serveraddr);
       n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr*)&serveraddr, serverlen);
-
-    /*  char result[100];
-      for(i=0;i<100;i++)result[i]='\0';
-      n = recvfrom(sockfd, result, 100, 0, (struct sockaddr*)&serveraddr, &serverlen);
-      if(n<0){
-        printf("\nrecv from error\n");
-      }
-      printf("\n\nThe result received from server is : ");
-      for(i=0;i<100;i++){
-        if(result[i]!='\0')
-        printf("%c",result[i]);
-      }
-      printf("\n\n");*/
-
-
-
-
       close(sockfd);
 
     }while(1);
