@@ -2,7 +2,7 @@
 
 Names: Somesh Khandelia & Subhranil Mondal
 Roll no.: 14/CS/105 & 13/CS/111
-Assignment No.3
+Assignment No.4
 Group no. B24
 
 *////////////////////////////////////////////
@@ -39,12 +39,12 @@ int main(int argc, char **argv) {
     char result[100];
 
     /* check command line arguments */
-    if (argc != 3) {
-       fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
+    if (argc != 2) {
+       fprintf(stderr,"usage: %s <hostname>\n", argv[0]);
        exit(0);
     }
     hostname = argv[1];
-    portno = atoi(argv[2]);
+  //  portno = atoi(argv[2]);
 
     do{
       /* socket: create the socket */
@@ -64,46 +64,34 @@ int main(int argc, char **argv) {
       serveraddr.sin_family = AF_INET;
       bcopy((char *)server->h_addr,
   	  (char *)&serveraddr.sin_addr.s_addr, server->h_length);
-      serveraddr.sin_port = htons(portno);
+      serveraddr.sin_port = htons(6000);
 
       /* get a message from the user */
       bzero(buf, BUFSIZE);
-      printf("Enter the arithmetic expression: ");
+      printf("\n\nThis is UDP client\n\nEnter the text to be sent to server: ");
       gets(buf);
+      serverlen = sizeof(serveraddr);
+      n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr*)&serveraddr, serverlen);
 
-
-
-      if(buf[0]!='-'||buf[1]!='1'||buf[2]!='\0'){
-        printf("\n\nThe arithmetic expression entered in the client was : %s\n",buf);
-        printf("\n\nNo. of characters in expression: %d\n",strlen(buf));
-        serverlen = sizeof(serveraddr);
-        n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr*)&serveraddr, serverlen);
-
-        int i;
-        char result[100];
-       for(i=0;i<100;i++)result[i]='\0';
-    // bzero(result,BUFSIZE);
-
-          n = recvfrom(sockfd, result, 100, 0, (struct sockaddr*)&serveraddr, &serverlen);
-          if(n<0){
-            printf("\nrecv from error\n");
-          }
-          printf("\n\nThe result received from server is : ");
-          for(i=0;i<100;i++){
-            if(result[i]!='\0')
-            printf("%c",result[i]);
-          }
-          printf("\n\n");
-        //printf("\nThe result received from server is : %s\n\n",result);
-        //memset(result,0,255);
-      //  bzero(result,BUFSIZE);
+    /*  char result[100];
+      for(i=0;i<100;i++)result[i]='\0';
+      n = recvfrom(sockfd, result, 100, 0, (struct sockaddr*)&serveraddr, &serverlen);
+      if(n<0){
+        printf("\nrecv from error\n");
       }
-      else{
-        printf("Client terminated\n\n");
+      printf("\n\nThe result received from server is : ");
+      for(i=0;i<100;i++){
+        if(result[i]!='\0')
+        printf("%c",result[i]);
       }
+      printf("\n\n");*/
+
+
+
+
       close(sockfd);
 
-    }while(buf[0]!='-'||buf[1]!='1'||buf[2]!='\0');
+    }while(1);
 
     return 0;
 }

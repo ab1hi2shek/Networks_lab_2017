@@ -3,7 +3,7 @@
 Names: Somesh Khandelia & Subhranil Mondal
 Roll no.: 14/CS/105 & 13/CS/111
 Assignment No.3
-Group no. 24
+Group no. B24
 
 *////////////////////////////////////////////
 /*
