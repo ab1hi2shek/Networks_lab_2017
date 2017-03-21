@@ -193,9 +193,9 @@ int main(void){
 	printf("the new board in the server: \n");
 	for(i=0;i<k;i++){
 		for(j=0;j<k;j++){
-			printf("%c ",c[k*i+j]);
+			printf("%c  ",c[k*i+j]);
 		}
-	printf("\n");
+	printf("\n\n");
 	}
 ///////////////////////////////////////////////////////////////////////////
 semctl(sigma1,0,SETVAL,1);
@@ -258,7 +258,19 @@ if (newsockfd < 0) {
 			}
 			recv(newsockfd, buff, 1000, 0);
 			for(i=0;i<k;i++){
+				if(buff[i]=='q'){
+					a[i]='X';
+					continue;
+				}
 				a[i]=buff[i];
+			}
+
+			printf("\n\nthe current board in the server: \n");
+			for(i=0;i<k;i++){
+				for(j=0;j<k;j++){
+					printf("%c  ",a[k*i+j]);
+				}
+			printf("\n\n");
 			}
 
 			V(sigma2);
@@ -327,8 +339,21 @@ if (newsockfd < 0) {
 					}
 					recv(newsockfd, buff, 1000, 0);
 					for(i=0;i<k;i++){
+						if(buff[i]=='q'){
+							b[i]='O';
+							continue;
+						}
 						b[i]=buff[i];
 					}
+
+					printf("\n\nthe current board in the server: \n");
+					for(i=0;i<k;i++){
+						for(j=0;j<k;j++){
+							printf("%c  ",b[k*i+j]);
+						}
+					printf("\n\n");
+					}
+
 
 					V(sigma1);
 
