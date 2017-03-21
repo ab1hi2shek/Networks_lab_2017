@@ -7,6 +7,10 @@
 #include<netinet/in.h>
 #include<stdlib.h>
 #include<string.h>
+#include<sys/sem.h>
+
+#define P(s) semop(s,&pop,1);
+#define V(s) semop(s,&vop,1);
 
 int checkRow(char**arr,int rownum,int board_size){
 	int i;
@@ -135,6 +139,20 @@ int main(void){
 	//char board[3][3];
 	int shmid;
 	char *a,*b,*c;
+	//////////////initializing semaphores//////////////////////////
+	int sigma1,sigma2;
+	struct sembuf pop,vop;
+
+	sigma1=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+	sigma2=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+
+	semctl(sigma1,0,SETVAL,1);
+	semctl(sigma2,0,SETVAL,0);
+
+	pop.sem_num=vop.sem_num=0;
+	pop.sem_flg=vop.sem_flg=0;
+	pop.sem_op=-1;
+	vop.sem_op=1;
 ///////////////setting up the server socket////////////////////////
 	int sockfd,newsockfd;
 	int clilen;
@@ -167,7 +185,7 @@ int main(void){
 		c=shmat(shmid,0,0);
 
 /////////////////////initializing the board for a new game ////////////////////
-		for(i=0;i<k*k-1;i++){
+		for(i=0;i<=k*k-1;i++){
 			c[i]='.';
 		}
 
@@ -180,7 +198,9 @@ int main(void){
 	printf("\n");
 	}
 ///////////////////////////////////////////////////////////////////////////
-
+semctl(sigma1,0,SETVAL,1);
+semctl(sigma2,0,SETVAL,0);
+///////////////////////////////////////////////////////////////////////////
 clilen = sizeof(cli_addr);
 newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr,
 &clilen) ;
@@ -193,6 +213,8 @@ if (newsockfd < 0) {
 		//in process S1
 		a=shmat(shmid,0,0);
 		while(1){
+
+			P(sigma1);
 
 			///////////////////////CONSTRUCT THE SERVERMSG ////////////////////////
 			char servermsg[1000];
@@ -221,6 +243,7 @@ if (newsockfd < 0) {
 			if(checkGameOver(temp,k)){
 				close(newsockfd);
 				shmdt(a);
+				V(sigma2);
 				exit(0);
 			}
 			////////freeing the temporary storage/////////////
@@ -237,6 +260,8 @@ if (newsockfd < 0) {
 			for(i=0;i<k;i++){
 				a[i]=buff[i];
 			}
+
+			V(sigma2);
 
 		}//end of while(1) in S1
 
@@ -257,6 +282,8 @@ if (newsockfd < 0) {
 
 				b=shmat(shmid,0,0);
 				while(1){
+
+					P(sigma2);
 
 					/////////////////////CONSTRUCT THE SERVERMSG ////////////////////
 					char servermsg[1000];
@@ -285,6 +312,7 @@ if (newsockfd < 0) {
 					if(checkGameOver(temp,k)){
 						close(newsockfd);
 						shmdt(b);
+						V(sigma1);
 						exit(0);
 					}
 					////////freeing the temporary storage/////////////
@@ -302,6 +330,8 @@ if (newsockfd < 0) {
 						b[i]=buff[i];
 					}
 
+					V(sigma1);
+
 				}//end of while(1) in S2
 
 
@@ -314,6 +344,8 @@ if (newsockfd < 0) {
 
 		close(newsockfd);
 		shmctl(shmid, IPC_RMID, 0);
+		semctl(sigma1,0,IPC_RMID,0);
+		semctl(sigma2,0,IPC_RMID,0);
 
 	}//end of process S
 
