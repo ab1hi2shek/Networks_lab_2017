@@ -13,6 +13,10 @@
 #define P(s) semop(s,&pop,1);
 #define V(s) semop(s,&vop,1);
 
+void func(int x){
+	exit(0);
+}
+
 int checkRow(char**arr,int rownum,int board_size){
 	int i;
 	int flago=0,flagx=0;
@@ -163,11 +167,11 @@ int main(void){
 	int sigma1,sigma2;
 	struct sembuf pop,vop;
 
-	sigma1=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
-	sigma2=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+//	sigma1=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+//	sigma2=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
 
-	semctl(sigma1,0,SETVAL,1);
-	semctl(sigma2,0,SETVAL,0);
+	//semctl(sigma1,0,SETVAL,1);
+	//semctl(sigma2,0,SETVAL,0);
 
 	pop.sem_num=vop.sem_num=0;
 	pop.sem_flg=vop.sem_flg=0;
@@ -199,6 +203,14 @@ int main(void){
 ///////the server waits for a new game all the time///////////////////
 
 	while(1){
+
+		sigma1=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+		sigma2=semget(IPC_PRIVATE,1,0777|IPC_CREAT);
+
+		semctl(sigma1,0,SETVAL,1);
+		semctl(sigma2,0,SETVAL,0);
+
+		printf("\n\n***********************************************************\n\n");
 		printf("Enter the board size for new game: ");
 		scanf("%d",&k);
 		shmid=shmget(IPC_PRIVATE,k*k*sizeof(char),0777|IPC_CREAT);
@@ -210,7 +222,7 @@ int main(void){
 		}
 
 ////////////////////////printing the new board in the server//////////////
-	printf("the new board in the server: \n");
+	printf("\n\nThe new board in the server: \n\n");
 	for(i=0;i<k;i++){
 		for(j=0;j<k;j++){
 			printf("%c  ",c[k*i+j]);
@@ -218,8 +230,8 @@ int main(void){
 	printf("\n\n");
 	}
 ///////////////////////////////////////////////////////////////////////////
-semctl(sigma1,0,SETVAL,1);
-semctl(sigma2,0,SETVAL,0);
+//semctl(sigma1,0,SETVAL,1);
+//semctl(sigma2,0,SETVAL,0);
 ///////////////////////////////////////////////////////////////////////////
 clilen = sizeof(cli_addr);
 //printf("\n\nNow waiting to accept client 1\n\n");
@@ -234,11 +246,15 @@ if (newsockfd < 0) {
 	if(pid1==0){
 		//in process S1
 		a=shmat(shmid,0,0);
+		signal(SIGKILL,func);
 		while(1){
 
 			P(sigma1);
+			sleep(4);
+			printf("\n\n******************************************************\n\n");
 
-			printf("\n\nInside process S1\n\n");
+
+		//	printf("\n\nInside process S1\n\n");
 
 			///////////////////////CONSTRUCT THE SERVERMSG ////////////////////////
 			char servermsg[1000];
@@ -271,14 +287,14 @@ if (newsockfd < 0) {
 
 			if(checkGameOver(temp,k)){
 				close(newsockfd);
-				printf("\n\nCLIENT 2 WINS!!!!\n\n");
+				printf("\n\n**************CLIENT 2 WINS!!!!*********************\n\n");
 				shmdt(a);
 				V(sigma2);
 				exit(0);
 			}
 			else if(checkBoardFull(temp,k)){
 				close(newsockfd);
-				printf("\n\nTHE GAME ENDS IN A DRAW!!!!\n\n");
+				printf("\n\n**************THE GAME ENDS IN A DRAW!!!*************\n\n");
 				shmdt(a);
 				V(sigma2);
 				exit(0);
@@ -302,7 +318,7 @@ if (newsockfd < 0) {
 				a[i]=buff[i];
 			}
 
-			printf("\n\nthe current board in the server: \n");
+			printf("\n\nThe current board in the server: \n");
 			for(i=0;i<k;i++){
 				for(j=0;j<k;j++){
 					printf("%c  ",a[k*i+j]);
@@ -332,11 +348,15 @@ if (newsockfd < 0) {
 				//in process S2
 
 				b=shmat(shmid,0,0);
+				signal(SIGKILL,func);
 				while(1){
 
 					P(sigma2);
+					sleep(4);
 
-					printf("\n\nInside process S2\n\n");
+					printf("\n\n****************************************************\n\n");
+
+				//	printf("\n\nInside process S2\n\n");
 
 					/////////////////////CONSTRUCT THE SERVERMSG ////////////////////
 					char servermsg[1000];
@@ -366,14 +386,14 @@ if (newsockfd < 0) {
 
 					if(checkGameOver(temp,k)){
 						close(newsockfdd);
-						printf("\n\nCLIENT 1 WINS!!!!\n\n");
+						printf("\n\n****************CLIENT 1 WINS!!!!****************\n\n");
 						shmdt(b);
 						V(sigma1);
 						exit(0);
 					}
 					else if(checkBoardFull(temp,k)){
 						close(newsockfd);
-						printf("\n\nTHE GAME ENDS IN A DRAW!!!!\n\n");
+						printf("\n\n**************THE GAME ENDS IN A DRAW!!!!*********\n\n");
 						shmdt(a);
 						V(sigma2);
 						exit(0);
@@ -397,7 +417,7 @@ if (newsockfd < 0) {
 						b[i]=buff[i];
 					}
 
-					printf("\n\nthe current board in the server: \n");
+					printf("\n\nThe current board in the server: \n");
 					for(i=0;i<k;i++){
 						for(j=0;j<k;j++){
 							printf("%c  ",b[k*i+j]);

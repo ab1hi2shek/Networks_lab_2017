@@ -155,7 +155,8 @@ int main(void){
   serv_addr.sin_addr.s_addr=inet_addr("127.0.0.1");
   serv_addr.sin_port=htons(6000);
 
-  printf("Enter the board size: ");
+	printf("\n\n*********************************************************\n\n");
+  printf("\n\nEnter the board size: ");
   scanf("%d",&k);
 
   if((sockfd=socket(AF_INET,SOCK_STREAM,0))<0){
@@ -176,7 +177,10 @@ int main(void){
     for(i=0; i < 1000; i++) {
       buff[i] = '\0';
     }
-    printf("\n\nclient ready to receive\n\n");
+
+    printf("\n\nClient ready to receive the board from server\n\n");
+
+		printf("\n\n*********************************************************\n\n");
     recv(sockfd, buff, 1000, 0);
 
     printf("\n\nThe current board :\n\n");
@@ -206,7 +210,7 @@ int main(void){
     free(temp);
     int x,y;
     do{
-      printf("\n\nMake your valid move:\n\nWrite space separated row and column number: ");
+      printf("\n\n************************Make your valid move*************************\n\nWrite space separated row and column number: ");
 
       scanf("%d %d",&x,&y);
       if(x>k||x<1||y>k||y<1){
