@@ -8,6 +8,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<sys/sem.h>
+#include<signal.h>
 
 #define P(s) semop(s,&pop,1);
 #define V(s) semop(s,&vop,1);
@@ -111,7 +112,7 @@ int checkLeftDiagonal(char**arr,int board_size){
 
 
 int checkGameOver(char**arr,int board_size){
-	int i;
+	int i,j;
 	//checking row winner///////////
 	for(i=0;i<board_size;i++){
 		if(checkRow(arr,i,board_size)==1){
@@ -128,8 +129,27 @@ int checkGameOver(char**arr,int board_size){
 	if(checkRightDiagonal(arr,board_size)||checkLeftDiagonal(arr,board_size)){
 		return 1;
 	}
+
 	return 0;
 }
+
+int checkBoardFull(char**arr,int board_size){
+	int flag=0;
+	int i,j;
+  for(i=0;i<board_size;i++){
+    for(j=0;j<board_size;j++){
+      if(arr[i][j]=='.'){
+        flag=1;
+        break;
+      }
+    }
+  }
+  if(flag==0){
+    return 1;
+  }
+	return 0;
+}
+
 
 
 
@@ -154,7 +174,7 @@ int main(void){
 	pop.sem_op=-1;
 	vop.sem_op=1;
 ///////////////setting up the server socket////////////////////////
-	int sockfd,newsockfd;
+	int sockfd,newsockfd,newsockfdd;
 	int clilen;
 	struct sockaddr_in serv_addr,cli_addr;
 
@@ -202,6 +222,7 @@ semctl(sigma1,0,SETVAL,1);
 semctl(sigma2,0,SETVAL,0);
 ///////////////////////////////////////////////////////////////////////////
 clilen = sizeof(cli_addr);
+//printf("\n\nNow waiting to accept client 1\n\n");
 newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr,
 &clilen) ;
 if (newsockfd < 0) {
@@ -209,21 +230,29 @@ if (newsockfd < 0) {
 		exit(0);
 	}
 /////if connection established////////////////
-	if(fork()==0){
+	pid_t pid1=fork();
+	if(pid1==0){
 		//in process S1
 		a=shmat(shmid,0,0);
 		while(1){
 
 			P(sigma1);
 
+			printf("\n\nInside process S1\n\n");
+
 			///////////////////////CONSTRUCT THE SERVERMSG ////////////////////////
 			char servermsg[1000];
-			for(i=0; i < 1000; i++) {
+		/*	for(i=0; i < 1000; i++) {
 				servermsg[i] = '\0';
-			}
-			for(i=0;i<k;i++){
+			}*/
+			for(i=0;i<k*k;i++){
 				servermsg[i]=a[i];
 			}
+			servermsg[i]='\0';
+
+			//printf("\nprinting the msg which server sends\n");
+			//printf("%s\n",servermsg);
+
 			send(newsockfd,servermsg,strlen(servermsg)+1,0);
 			/////////////////////CHECK WHETHER GAME OVER OR NOT//////////////////////////
 
@@ -242,6 +271,14 @@ if (newsockfd < 0) {
 
 			if(checkGameOver(temp,k)){
 				close(newsockfd);
+				printf("\n\nCLIENT 2 WINS!!!!\n\n");
+				shmdt(a);
+				V(sigma2);
+				exit(0);
+			}
+			else if(checkBoardFull(temp,k)){
+				close(newsockfd);
+				printf("\n\nTHE GAME ENDS IN A DRAW!!!!\n\n");
 				shmdt(a);
 				V(sigma2);
 				exit(0);
@@ -257,7 +294,7 @@ if (newsockfd < 0) {
 				buff[i] = '\0';
 			}
 			recv(newsockfd, buff, 1000, 0);
-			for(i=0;i<k;i++){
+			for(i=0;i<k*k;i++){
 				if(buff[i]=='q'){
 					a[i]='X';
 					continue;
@@ -282,14 +319,16 @@ if (newsockfd < 0) {
 	else{
 		//in process S
 		clilen = sizeof(cli_addr);
-		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr,
+		//printf("\n\nNow waiting to accept client 2\n\n");
+		newsockfdd = accept(sockfd, (struct sockaddr *) &cli_addr,
 		&clilen) ;
-		if (newsockfd < 0) {
+		if (newsockfdd < 0) {
 				printf("Accept error\n");
 				exit(0);
 			}
 			/////if connection established//////////////
-			if(fork()==0){
+			pid_t pid2=fork();
+			if(pid2==0){
 				//in process S2
 
 				b=shmat(shmid,0,0);
@@ -297,15 +336,19 @@ if (newsockfd < 0) {
 
 					P(sigma2);
 
+					printf("\n\nInside process S2\n\n");
+
 					/////////////////////CONSTRUCT THE SERVERMSG ////////////////////
 					char servermsg[1000];
-					for(i=0; i < 1000; i++) {
-						servermsg[i] = '\0';
+					for(i=0;i<k*k;i++){
+						servermsg[i]=b[i];
 					}
+					servermsg[i]='\0';
+
 					for(i=0;i<k;i++){
 						servermsg[i]=b[i];
 					}
-					send(newsockfd,servermsg,strlen(servermsg)+1,0);
+					send(newsockfdd,servermsg,strlen(servermsg)+1,0);
 					////////////////////CHECK WHETHER GAME OVER OR NOT////////////////////
 
 
@@ -322,9 +365,17 @@ if (newsockfd < 0) {
 					///////////////////IF GAME OVER then TERMINATE this process//////////
 
 					if(checkGameOver(temp,k)){
-						close(newsockfd);
+						close(newsockfdd);
+						printf("\n\nCLIENT 1 WINS!!!!\n\n");
 						shmdt(b);
 						V(sigma1);
+						exit(0);
+					}
+					else if(checkBoardFull(temp,k)){
+						close(newsockfd);
+						printf("\n\nTHE GAME ENDS IN A DRAW!!!!\n\n");
+						shmdt(a);
+						V(sigma2);
 						exit(0);
 					}
 					////////freeing the temporary storage/////////////
@@ -337,8 +388,8 @@ if (newsockfd < 0) {
 					for(i=0; i < 1000; i++) {
 						buff[i] = '\0';
 					}
-					recv(newsockfd, buff, 1000, 0);
-					for(i=0;i<k;i++){
+					recv(newsockfdd, buff, 1000, 0);
+					for(i=0;i<k*k;i++){
 						if(buff[i]=='q'){
 							b[i]='O';
 							continue;
@@ -364,8 +415,14 @@ if (newsockfd < 0) {
 
 		/////wait for both child processes to end////////////
 
-		wait(&status);
-		wait(&status);
+		pid_t temp=wait(&status);
+		if(temp==pid1){
+			kill(pid2,SIGKILL);
+		}
+		else{
+			kill(pid1,SIGKILL);
+		}
+		//wait(&status);
 
 		close(newsockfd);
 		shmctl(shmid, IPC_RMID, 0);

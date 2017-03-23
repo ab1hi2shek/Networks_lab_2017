@@ -108,7 +108,7 @@ int checkLeftDiagonal(char**arr,int board_size){
 
 
 int checkGameOver(char**arr,int board_size){
-	int i;
+	int i,j;
 	//checking row winner///////////
 	for(i=0;i<board_size;i++){
 		if(checkRow(arr,i,board_size)==1){
@@ -125,8 +125,27 @@ int checkGameOver(char**arr,int board_size){
 	if(checkRightDiagonal(arr,board_size)||checkLeftDiagonal(arr,board_size)){
 		return 1;
 	}
+
 	return 0;
 }
+
+int checkBoardFull(char**arr,int board_size){
+	int flag=0;
+	int i,j;
+  for(i=0;i<board_size;i++){
+    for(j=0;j<board_size;j++){
+      if(arr[i][j]=='.'){
+        flag=1;
+        break;
+      }
+    }
+  }
+  if(flag==0){
+    return 1;
+  }
+  return 0;
+}
+
 
 int main(void){
   int sockfd,i,j,k;
@@ -139,22 +158,25 @@ int main(void){
   printf("Enter the board size: ");
   scanf("%d",&k);
 
+  if((sockfd=socket(AF_INET,SOCK_STREAM,0))<0){
+    printf("Socket creation error in client\n");
+    exit(0);
+  }
+
+  if(connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr))<0){
+    printf("Unable to connect to server\n");
+    exit(0);
+  }
+
 //the client keeps on playing until it receives a board in which someone has won
 
   while(1){
-    if((sockfd=socket(AF_INET,SOCK_STREAM,0))<0){
-      printf("Socket creation error in client\n");
-      exit(0);
-    }
 
-    if(connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr))<0){
-      printf("Unable to connect to server\n");
-      exit(0);
-    }
     char buff[1000];
     for(i=0; i < 1000; i++) {
       buff[i] = '\0';
     }
+    printf("\n\nclient ready to receive\n\n");
     recv(sockfd, buff, 1000, 0);
 
     printf("\n\nThe current board :\n\n");
@@ -172,7 +194,7 @@ int main(void){
       printf("\n\n");
     }
 
-    if(checkGameOver(temp,k)){
+    if(checkGameOver(temp,k)||checkBoardFull(temp,k)){
       printf("\n\nGAME OVER !!!\n\nClient Terminated!\n");
       exit(0);
     }
@@ -182,13 +204,29 @@ int main(void){
       free(temp[i]);
     }
     free(temp);
-
-    printf("\n\nMake your move:\n\nWrite space separated row and column number: ");
     int x,y;
-    scanf("%d %d",&x,&y);
-    x--;
-    y--;
-    buff[k*x+y]='q';
+    do{
+      printf("\n\nMake your valid move:\n\nWrite space separated row and column number: ");
+
+      scanf("%d %d",&x,&y);
+      if(x>k||x<1||y>k||y<1){
+        printf("\n\nInvalid move!!\n\n");
+        continue;
+      }
+      x--;
+      y--;
+      if(buff[k*x+y]=='.'){
+        buff[k*x+y]='q';
+      }
+      else{
+        printf("\n\nInvalid move!!\n\n");
+      }
+
+
+    }while(buff[k*x+y]!='q');
+
+  //  printf("\n\nclient ready to send\n\n");
+  //  printf("\n\n%s\n\n",buff);
 
     send(sockfd,buff,strlen(buff)+1,0);
 
