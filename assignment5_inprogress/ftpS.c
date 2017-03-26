@@ -173,7 +173,7 @@ int main(void){
 
 ////////////////////////////// cd COMMAND CHECKING///////////////////////////////////////////////////////////
 
- if(port_flag==1 && buff[0]=='c' && buff[1]=='d' && buff[2]==' '){
+ else if(port_flag==1 && buff[0]=='c' && buff[1]=='d' && buff[2]==' '){
    i=3;
    j=0;
    while(buff[i]!='\0'){
@@ -238,7 +238,7 @@ int main(void){
 
 /////////////////////////////get COMMAND CHECKING//////////////////////////////////////////////////////////////
 
-  if(port_flag==1 && buff[0]=='g' && buff[1]=='e' && buff[2]=='t' && buff[3]==' '){
+  else if(port_flag==1 && buff[0]=='g' && buff[1]=='e' && buff[2]=='t' && buff[3]==' '){
 
   char filename[100];
   i=4;
@@ -270,13 +270,58 @@ int main(void){
 
     ////////////ACTIVATE SD PROCESS/////////////////////////////////////
 
-    
+
   }//if opening file was successful
 
 }
 
 
 ////////////////////////////get COMMAND CHECKING DONE/////////////////////////////////////////
+
+///////////////////////////put COMMAND CHECKING//////////////////////////////////////
+
+
+  else if(port_flag==1 && buff[0]=='p' && buff[1]=='u' && buff[2]=='t' && buff[3]==' '){
+
+  char filename[100];
+  i=4;
+  j=0;
+  while(buff[i]!='\0'){
+    filename[j]=buff[i];
+    i++;
+    j++;
+  }
+  filename[j]='\0';
+
+    for(i=0;i<100;i++){
+      put_get_SC[i]='\0';
+    }
+    strcpy(put_get_SC,buff);//copying  "get filename" to shared memory
+
+    ////////////ACTIVATE SD PROCESS/////////////////////////////////////
+
+
+}
+
+///////////////////////////put COMMAND CHECKING DONE////////////////////////////////////
+
+//////////////////////////quit COMMAND CHECKING/////////////////////////////////////////
+
+  else if(port_flag==1 && buff[0]=='q' && buff[1]=='u' && buff[2]=='i' && buff[3]=='t'){
+    for(i=0; i < 20; i++) {
+      servermsg[i] = '\0';
+    }
+    servermsg[0]='4';
+    servermsg[1]='2';
+    servermsg[2]='1';
+
+    send(newsockfd,servermsg,strlen(servermsg)+1,0);//sending 421 if quit command received
+
+  }
+
+
+
+/////////////////////////quit COMMAND CHECKING DONE////////////////////////////////////
 
     }//end of while
     shmctl(shmid2, IPC_RMID, 0);
